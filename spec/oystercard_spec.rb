@@ -2,8 +2,8 @@ require "oystercard"
 
 RSpec.describe OysterCard do
 
-  let(:station) { double(:station) }
-  let(:exit_station) { double(:exit_station) }
+  let(:entry_station) { double("Paddington") }
+  let(:exit_station) { double("Liverpool street") }
 
     describe '#initialize' do
         it 'creates each oystercard instance with a default balance' do
@@ -27,32 +27,33 @@ RSpec.describe OysterCard do
       before(:each) do
         subject.top_up(5)
       end
+
         it "can touch in" do
-            subject.touch_in(station)
+            subject.touch_in(entry_station)
             expect(subject.in_journey?).to be_truthy
         end
 
         it "raises an error if oyster has insufficient funds" do
           card = OysterCard.new
-          expect{ card.touch_in(station) }.to raise_error "Insufficient funds, you need at least £#{OysterCard::MIN_LIMIT} to touch in"
+          expect{ card.touch_in(entry_station) }.to raise_error "Insufficient funds, you need at least £#{OysterCard::MIN_LIMIT} to touch in"
         end
 
         it "remembers the station you started journey from" do
-          allow(station).to receive(:name).and_return("Paddington")
-          subject.touch_in(station.name)
-          expect(subject.entry_station).to eq "Paddington"
+          # allow(entry_station).to receive(:name).and_return("Paddington")
+          subject.touch_in(entry_station)
+          expect(subject.entry_station).to eq entry_station
         end
 
-        it "stores the entry_station in journey" do
-          subject.touch_in(station)
-          expect(subject.journey["entry_station"]).to eq station
+        it "stores the entry_station" do
+          subject.touch_in(entry_station)
+          expect(subject.entry_station).to eq entry_station
         end
     end
 
     describe '#touch_out(exit_station)' do
         before(:each) do
           subject.top_up(5)
-          subject.touch_in(exit_station)
+          subject.touch_in(entry_station)
         end
 
         it 'returns false if oyster is not in journey' do
@@ -70,9 +71,15 @@ RSpec.describe OysterCard do
         end
 
         it "stores exit station" do
-            subject.touch_out(exit_station)
-            expect(subject.journey["exit_station"]).to eq exit_station
+          subject.touch_out(exit_station)
+          expect(subject.exit_station).to eq exit_station
         end
+
+        it "creates a journey when you touch out" do
+          subject.touch_out(exit_station)
+          expect(subject.journey.values).to eq [entry_station, exit_station]
+        end
+
     end
 
     describe '#in_journey?' do 
@@ -86,6 +93,7 @@ RSpec.describe OysterCard do
         it "stores a list of previous journeys" do
             expect(subject.list_of_journeys).to be_truthy
         end
+
         it "is empty by default" do
         expect(subject.list_of_journeys).to be_empty
         end

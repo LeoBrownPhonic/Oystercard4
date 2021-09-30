@@ -17,19 +17,16 @@ class OysterCard
     @balance += value
   end
 
-  def touch_in(station)
+  def touch_in(entry_station)
     fail "Insufficient funds, you need at least £#{MIN_LIMIT} to touch in" if @balance < MIN_LIMIT
-    @in_use = true
-    @entry_station = station
-    journey["entry_station"] = entry_station
+    @entry_station = entry_station
   end
 
   def touch_out(exit_station)
     deduct(MIN_CHARGE)
-    @in_use = false
-    @entry_station = nil
     @exit_station = exit_station
-    journey["exit_station"] = exit_station
+    @journey = {"entry station": entry_station, "exit station": exit_station}
+    @entry_station = nil
   end
 
   def in_journey?
